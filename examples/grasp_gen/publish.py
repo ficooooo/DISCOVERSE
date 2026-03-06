@@ -233,3 +233,4 @@ def main():
 if __name__ == "__main__":
     # export MUJOCO_GL=glfw   # 如果 GLX BadAccess
     main()
+    
