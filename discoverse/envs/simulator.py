@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import traceback
 from abc import abstractmethod
 
 import cv2
@@ -22,9 +21,8 @@ if sys.platform == "linux":
         from gaussian_renderer.gs_renderer_mujoco import GSRendererMuJoCo
         DISCOVERSE_GAUSSIAN_RENDERER = True
 
-    except ImportError:
-        traceback.print_exc()
-        print("Warning: gaussian_splatting renderer not found. Please install the required packages to use it.")
+    except ImportError as e:
+        print(f"Warning: gaussian_splatting renderer not found ({e}). Set use_gaussian_renderer=False to use the MuJoCo renderer.")
         DISCOVERSE_GAUSSIAN_RENDERER = False
 else:
     DISCOVERSE_GAUSSIAN_RENDERER = False
@@ -245,10 +243,14 @@ class SimulatorBase:
             try:
                 import screeninfo
                 monitors = screeninfo.get_monitors()
-                for m in monitors:
-                    if m.is_primary:
-                        screen_width, screen_height = m.width, m.height
-                        break
+                monitor = next((m for m in monitors if m.is_primary), None)
+                if monitor is None and monitors:
+                    monitor = monitors[0]
+                if monitor is not None:
+                    screen_width, screen_height = monitor.width, monitor.height
+                else:
+                    screen_width, screen_height = 1920, 1080
+                    self.use_default_window_size = True
             except Exception as e:
                 screen_width, screen_height = 1920, 1080
                 print(f"screeninfo error: {e}, using default screen size: {screen_width}x{screen_height}")
